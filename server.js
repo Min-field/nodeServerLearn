@@ -4,6 +4,7 @@ var fs = require('fs');
 http.createServer(function(request, response){
     var path = request.url.replace(/\/?(\?.*)?$/, '');
     console.log(path);
+
     switch (path){
         case '': 
             getRes(response, '/public/home.html', 'text/html');
@@ -11,14 +12,16 @@ http.createServer(function(request, response){
         case '/about':
             getRes(response, '/public/about.html', 'text/html');
             break;
-        case './public/logo.jpg':
-            getRes(response, '/public/logo,jpg', 'image/jpeg')
+        case '/logo.jpg':
+            getRes(response, '/public/logo.jpg', 'image/jpeg');
+            break;
         default: 
-            getRes(response, '404', 'text/html', 404);
+            getRes(response, '/public/404.html', 'text/html', 404);
     }
 }).listen(3000);
 
 function getRes(res, path, contentType, responseCode){
+    path = __dirname + path;
     fs.readFile(path, (err, data) => {
         if(err){
             res.writeHead(500, {'Content-type': 'text/plain'});
