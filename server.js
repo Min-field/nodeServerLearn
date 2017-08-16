@@ -1,39 +1,36 @@
-var http = require('http');
-var fs = require('fs');
+var express = require('express');
+var handlebars = require('express-handlebars').create({defaultLayout: 'main'});
+var app = express();
 
-http.createServer(function(request, response){
-    var path = request.url.replace(/\/?(\?.*)?$/, '');
-    console.log(path);
+app.set('port', process.env.PORT || 3000);
 
-    switch (path){
-        case '': 
-            getRes(response, '/public/home.html', 'text/html');
-            break;
-        case '/about':
-            getRes(response, '/public/about.html', 'text/html');
-            break;
-        case '/logo.jpg':
-            getRes(response, '/public/logo.jpg', 'image/jpeg');
-            break;
-        default: 
-            getRes(response, '/public/404.html', 'text/html', 404);
-    }
-}).listen(3000);
+// 设置模板的后缀为handlebars
+app.set('view engine', 'handlebars');
+// 使用handlebars的引擎来渲染模板
+app.engine('handlebars', handlebars.engine);
 
-function getRes(res, path, contentType, responseCode){
-    path = __dirname + path;
-    fs.readFile(path, (err, data) => {
-        if(err){
-            res.writeHead(500, {'Content-type': 'text/plain'});
-            res.end('500 - Internal Error');
-        } else {
-            if(!responseCode){
-                res.writeHead(200, {'Content-type': contentType});
-            } else {
-                res.writeHead(responseCode, {'Content-type': contentType});
-            }
-            res.end(data);
-        }
-    })
-}
-console.log('Server started in localhost:3000; press "Ctrl-C" to terminating');
+app.use(express.static(__dirname + '/public'));
+
+app.get('/', (req, res) => {
+    res.render('home');
+});
+
+app.get('/about', (req, res) => {
+    res.render('about');
+});
+
+// use 函数是express的中间件，用于对request以及response做处理
+app.use((req, res) => {
+    res.status(404);
+    res.render('404');
+});
+
+// 定制500页面
+app.use((err, req, res, next) => {
+    res.status(500);
+    res.render('500');
+}); 
+
+app.listen(app.get('port'), _ => {
+    console.log(`Server started in http:localhost:${ app.get('port') }, Type 'ctrl-c' to terminate`);
+});
